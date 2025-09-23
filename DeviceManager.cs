@@ -1,46 +1,46 @@
 ﻿using System;
-using System.Collections;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using OpenCvSharp;
 
 namespace Image_and_Video_Processor
 {
     public class DeviceManager
     {
-        [DllImport("avicap32.dll", CharSet = CharSet.Ansi)]
-        private static extern bool capGetDriverDescriptionA(
-            short wDriverIndex,
-            [MarshalAs(UnmanagedType.LPStr)] System.Text.StringBuilder lpszName,
-            int cbName,
-            [MarshalAs(UnmanagedType.LPStr)] System.Text.StringBuilder lpszVer,
-            int cbVer);
+        private static List<CameraDevice> devices = new List<CameraDevice>();
 
-        private static ArrayList devices = new ArrayList();
-
-        public static Device[] GetAllDevices()
+        public static CameraDevice[] GetAllDevices()
         {
             devices.Clear();
-            var name = new System.Text.StringBuilder(100);
-            var version = new System.Text.StringBuilder(100);
-
-            for (short i = 0; i < 10; i++)
+            for (int i = 0; i < 10; i++)
             {
-                if (capGetDriverDescriptionA(i, name, name.Capacity, version, version.Capacity))
+                using (var capture = new VideoCapture(i))
                 {
-                    Device d = new Device(i)
+                    if (capture.IsOpened())
                     {
-                        Name = name.ToString().Trim(),
-                        Version = version.ToString().Trim()
-                    };
-                    devices.Add(d);
+                        devices.Add(new CameraDevice
+                        {
+                            Index = i,
+                            Name = $"Camera {i}"
+                        });
+                    }
                 }
             }
 
-            return (Device[])devices.ToArray(typeof(Device));
+            return devices.ToArray();
         }
-
-        public static Device GetDevice(int deviceIndex)
+        public static CameraDevice GetDevice(int deviceIndex)
         {
-            return (Device)devices[deviceIndex];
+            if (deviceIndex < 0 || deviceIndex >= devices.Count)
+                throw new IndexOutOfRangeException("Invalid device index.");
+
+            return devices[deviceIndex];
         }
+    }
+    public class CameraDevice
+    {
+        public int Index { get; set; }
+        public string Name { get; set; }
+
+        public override string ToString() => Name;
     }
 }

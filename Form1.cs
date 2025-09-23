@@ -3,6 +3,7 @@ using OpenCvSharp.Extensions;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace Image_and_Video_Processor
@@ -15,8 +16,9 @@ namespace Image_and_Video_Processor
         private CameraDevice[] devices;
         private Timer videoTimer;
         private bool videoSubtractionEnabled = false;
+        private FilterType currentVideoFilter = FilterType.None; // Added
 
-        private enum FilterType { None, Grayscale, Invert, Sepia, Subtract }
+        private enum FilterType { None, Grayscale, Invert, Sepia, Subtract, Histogram }
 
         public Form1()
         {
@@ -243,13 +245,22 @@ namespace Image_and_Video_Processor
 
                 Bitmap frameBitmap = BitmapConverter.ToBitmap(frameMat);
 
+                // Live camera feed
                 pictureBox1.Image?.Dispose();
                 pictureBox1.Image = (Bitmap)frameBitmap.Clone();
 
+                // Apply subtraction if enabled
                 if (videoSubtractionEnabled && backgroundImage != null)
                 {
                     EnsureBackgroundSize(frameBitmap.Width, frameBitmap.Height);
                     Bitmap result = ApplySubtraction(frameBitmap, backgroundImage);
+                    pictureBox3.Image?.Dispose();
+                    pictureBox3.Image = result;
+                }
+                // Apply live video filter
+                else if (currentVideoFilter != FilterType.None)
+                {
+                    Bitmap result = ApplyVideoFilter(frameBitmap, currentVideoFilter);
                     pictureBox3.Image?.Dispose();
                     pictureBox3.Image = result;
                 }
@@ -270,19 +281,19 @@ namespace Image_and_Video_Processor
         private void VideoGrayscaleButton_Click(object sender, EventArgs e)
         {
             if (!CheckCameraRunning()) return;
-            ApplyVideoFilterToBox(FilterType.Grayscale);
+            currentVideoFilter = FilterType.Grayscale;
         }
 
         private void VideoInvertButton_Click(object sender, EventArgs e)
         {
             if (!CheckCameraRunning()) return;
-            ApplyVideoFilterToBox(FilterType.Invert);
+            currentVideoFilter = FilterType.Invert;
         }
 
         private void VideoSepiaButton_Click(object sender, EventArgs e)
         {
             if (!CheckCameraRunning()) return;
-            ApplyVideoFilterToBox(FilterType.Sepia);
+            currentVideoFilter = FilterType.Sepia;
         }
 
         private void VideoSubtractButton_Click(object sender, EventArgs e)
@@ -300,19 +311,13 @@ namespace Image_and_Video_Processor
             MessageBox.Show("Video subtraction enabled.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void ApplyVideoFilterToBox(FilterType filter)
-        {
-            if (!CheckCameraRunning()) return;
-
-            Bitmap frame = (Bitmap)pictureBox1.Image;
-            Bitmap result = ApplyVideoFilter(frame, filter);
-
-            pictureBox3.Image?.Dispose();
-            pictureBox3.Image = result;
-        }
-
         private unsafe Bitmap ApplyVideoFilter(Bitmap frame, FilterType filter)
         {
+            if (filter == FilterType.Histogram)
+            {
+                return GenerateHistogram(frame);
+            }
+
             Bitmap result = new Bitmap(frame.Width, frame.Height, PixelFormat.Format24bppRgb);
 
             BitmapData frameData = frame.LockBits(new Rectangle(0, 0, frame.Width, frame.Height),
@@ -320,7 +325,7 @@ namespace Image_and_Video_Processor
             BitmapData resultData = result.LockBits(new Rectangle(0, 0, result.Width, result.Height),
                                                     ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
 
-            int stride = frameData.Stride;
+            int strideFrame = frameData.Stride;
 
             try
             {
@@ -329,8 +334,8 @@ namespace Image_and_Video_Processor
 
                 for (int y = 0; y < frame.Height; y++)
                 {
-                    byte* rowFrame = ptrFrame + (y * stride);
-                    byte* rowResult = ptrResult + (y * stride);
+                    byte* rowFrame = ptrFrame + (y * strideFrame);
+                    byte* rowResult = ptrResult + (y * strideFrame);
 
                     for (int x = 0; x < frame.Width; x++)
                     {
@@ -373,6 +378,45 @@ namespace Image_and_Video_Processor
             }
 
             return result;
+        }
+
+        private unsafe Bitmap GenerateHistogram(Bitmap frame)
+        {
+            int[] counts = new int[256];
+
+            BitmapData data = frame.LockBits(new Rectangle(0, 0, frame.Width, frame.Height),
+                                             ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            int stride = data.Stride;
+            byte* ptr = (byte*)data.Scan0;
+
+            for (int y = 0; y < frame.Height; y++)
+            {
+                byte* row = ptr + y * stride;
+                for (int x = 0; x < frame.Width; x++)
+                {
+                    byte b = row[x * 3 + 0];
+                    byte g = row[x * 3 + 1];
+                    byte r = row[x * 3 + 2];
+                    int gray = (int)(0.299 * r + 0.587 * g + 0.114 * b);
+                    counts[gray]++;
+                }
+            }
+
+            frame.UnlockBits(data);
+
+            int max = counts.Max();
+            Bitmap histogram = new Bitmap(256, 100);
+            using (Graphics g = Graphics.FromImage(histogram))
+            {
+                g.Clear(Color.White);
+                for (int i = 0; i < 256; i++)
+                {
+                    int height = (int)(counts[i] * 100.0 / max);
+                    g.DrawLine(Pens.Black, new System.Drawing.Point(i, 100), new System.Drawing.Point(i, 100 - height));
+                }
+            }
+
+            return histogram;
         }
 
         private unsafe Bitmap ApplySubtraction(Bitmap frame, Bitmap bgImage)
@@ -515,6 +559,7 @@ namespace Image_and_Video_Processor
         {
             videoTimer.Stop();
             videoSubtractionEnabled = false;
+            currentVideoFilter = FilterType.None;
 
             if (videoCapture != null)
             {
@@ -525,5 +570,11 @@ namespace Image_and_Video_Processor
         }
 
         #endregion
+
+        private void histogramToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            if (!CheckCameraRunning()) return;
+            currentVideoFilter = FilterType.Histogram;
+        }
     }
 }

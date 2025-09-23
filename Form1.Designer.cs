@@ -45,6 +45,7 @@
             this.colorInversionToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.copyToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.greyscaleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.histogramToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
@@ -102,7 +103,7 @@
             this.histogramToolStripMenuItem,
             this.grToolStripMenuItem});
             this.effectsToolStripMenuItem.Name = "effectsToolStripMenuItem";
-            this.effectsToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.effectsToolStripMenuItem.Size = new System.Drawing.Size(136, 26);
             this.effectsToolStripMenuItem.Text = "Effects";
             // 
             // copyToolStripMenuItem
@@ -152,7 +153,7 @@
             // onToolStripMenuItem
             // 
             this.onToolStripMenuItem.Name = "onToolStripMenuItem";
-            this.onToolStripMenuItem.Size = new System.Drawing.Size(136, 26);
+            this.onToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.onToolStripMenuItem.Text = "On";
             this.onToolStripMenuItem.Click += new System.EventHandler(this.StartVideoButton_Click);
             // 
@@ -162,38 +163,46 @@
             this.sepaiToolStripMenuItem,
             this.colorInversionToolStripMenuItem1,
             this.copyToolStripMenuItem1,
-            this.greyscaleToolStripMenuItem});
+            this.greyscaleToolStripMenuItem,
+            this.histogramToolStripMenuItem1});
             this.effectsToolStripMenuItem1.Name = "effectsToolStripMenuItem1";
-            this.effectsToolStripMenuItem1.Size = new System.Drawing.Size(136, 26);
+            this.effectsToolStripMenuItem1.Size = new System.Drawing.Size(224, 26);
             this.effectsToolStripMenuItem1.Text = "Effects";
             // 
             // sepaiToolStripMenuItem
             // 
             this.sepaiToolStripMenuItem.Name = "sepaiToolStripMenuItem";
-            this.sepaiToolStripMenuItem.Size = new System.Drawing.Size(191, 26);
+            this.sepaiToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.sepaiToolStripMenuItem.Text = "Sepia";
             this.sepaiToolStripMenuItem.Click += new System.EventHandler(this.VideoSepiaButton_Click);
             // 
             // colorInversionToolStripMenuItem1
             // 
             this.colorInversionToolStripMenuItem1.Name = "colorInversionToolStripMenuItem1";
-            this.colorInversionToolStripMenuItem1.Size = new System.Drawing.Size(191, 26);
+            this.colorInversionToolStripMenuItem1.Size = new System.Drawing.Size(224, 26);
             this.colorInversionToolStripMenuItem1.Text = "Color Inversion";
             this.colorInversionToolStripMenuItem1.Click += new System.EventHandler(this.VideoInvertButton_Click);
             // 
             // copyToolStripMenuItem1
             // 
             this.copyToolStripMenuItem1.Name = "copyToolStripMenuItem1";
-            this.copyToolStripMenuItem1.Size = new System.Drawing.Size(191, 26);
+            this.copyToolStripMenuItem1.Size = new System.Drawing.Size(224, 26);
             this.copyToolStripMenuItem1.Text = "Copy";
             this.copyToolStripMenuItem1.Click += new System.EventHandler(this.VideoCopyButton_Click);
             // 
             // greyscaleToolStripMenuItem
             // 
             this.greyscaleToolStripMenuItem.Name = "greyscaleToolStripMenuItem";
-            this.greyscaleToolStripMenuItem.Size = new System.Drawing.Size(191, 26);
+            this.greyscaleToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.greyscaleToolStripMenuItem.Text = "Greyscale";
             this.greyscaleToolStripMenuItem.Click += new System.EventHandler(this.VideoGrayscaleButton_Click);
+            // 
+            // histogramToolStripMenuItem1
+            // 
+            this.histogramToolStripMenuItem1.Name = "histogramToolStripMenuItem1";
+            this.histogramToolStripMenuItem1.Size = new System.Drawing.Size(224, 26);
+            this.histogramToolStripMenuItem1.Text = "Histogram";
+            this.histogramToolStripMenuItem1.Click += new System.EventHandler(this.histogramToolStripMenuItem1_Click);
             // 
             // pictureBox1
             // 
@@ -294,6 +303,7 @@
         private System.Windows.Forms.PictureBox pictureBox3;
         private System.Windows.Forms.Button loadbgButton;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.ToolStripMenuItem histogramToolStripMenuItem1;
     }
 }
 

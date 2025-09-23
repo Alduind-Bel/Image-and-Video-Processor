@@ -39,12 +39,13 @@
             this.histogramToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.grToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cameraToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.onToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.StartVideoButton = new System.Windows.Forms.ToolStripMenuItem();
             this.effectsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.sepaiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.colorInversionToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.copyToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.greyscaleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.histogramToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
@@ -59,9 +60,9 @@
             // toolStrip1
             // 
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.toolStrip1.Location = new System.Drawing.Point(0, 28);
+            this.toolStrip1.Location = new System.Drawing.Point(0, 30);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1288, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(1288, 31);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -73,7 +74,7 @@
             this.cameraToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1288, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(1288, 30);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -83,7 +84,7 @@
             this.loadToolStripMenuItem,
             this.effectsToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 24);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 26);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // loadToolStripMenuItem
@@ -102,7 +103,7 @@
             this.histogramToolStripMenuItem,
             this.grToolStripMenuItem});
             this.effectsToolStripMenuItem.Name = "effectsToolStripMenuItem";
-            this.effectsToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.effectsToolStripMenuItem.Size = new System.Drawing.Size(136, 26);
             this.effectsToolStripMenuItem.Text = "Effects";
             // 
             // copyToolStripMenuItem
@@ -143,18 +144,18 @@
             // cameraToolStripMenuItem
             // 
             this.cameraToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.onToolStripMenuItem,
+            this.StartVideoButton,
             this.effectsToolStripMenuItem1});
             this.cameraToolStripMenuItem.Name = "cameraToolStripMenuItem";
-            this.cameraToolStripMenuItem.Size = new System.Drawing.Size(74, 24);
+            this.cameraToolStripMenuItem.Size = new System.Drawing.Size(74, 26);
             this.cameraToolStripMenuItem.Text = "Camera";
             // 
-            // onToolStripMenuItem
+            // StartVideoButton
             // 
-            this.onToolStripMenuItem.Name = "onToolStripMenuItem";
-            this.onToolStripMenuItem.Size = new System.Drawing.Size(136, 26);
-            this.onToolStripMenuItem.Text = "On";
-            this.onToolStripMenuItem.Click += new System.EventHandler(this.StartVideoButton_Click);
+            this.StartVideoButton.Name = "StartVideoButton";
+            this.StartVideoButton.Size = new System.Drawing.Size(224, 26);
+            this.StartVideoButton.Text = "On";
+            this.StartVideoButton.Click += new System.EventHandler(this.StartVideoButton_Click);
             // 
             // effectsToolStripMenuItem1
             // 
@@ -162,9 +163,10 @@
             this.sepaiToolStripMenuItem,
             this.colorInversionToolStripMenuItem1,
             this.copyToolStripMenuItem1,
-            this.greyscaleToolStripMenuItem});
+            this.greyscaleToolStripMenuItem,
+            this.histogramToolStripMenuItem1});
             this.effectsToolStripMenuItem1.Name = "effectsToolStripMenuItem1";
-            this.effectsToolStripMenuItem1.Size = new System.Drawing.Size(136, 26);
+            this.effectsToolStripMenuItem1.Size = new System.Drawing.Size(224, 26);
             this.effectsToolStripMenuItem1.Text = "Effects";
             // 
             // sepaiToolStripMenuItem
@@ -194,6 +196,13 @@
             this.greyscaleToolStripMenuItem.Size = new System.Drawing.Size(191, 26);
             this.greyscaleToolStripMenuItem.Text = "Greyscale";
             this.greyscaleToolStripMenuItem.Click += new System.EventHandler(this.VideoGrayscaleButton_Click);
+            // 
+            // histogramToolStripMenuItem1
+            // 
+            this.histogramToolStripMenuItem1.Name = "histogramToolStripMenuItem1";
+            this.histogramToolStripMenuItem1.Size = new System.Drawing.Size(191, 26);
+            this.histogramToolStripMenuItem1.Text = "Histogram";
+            this.histogramToolStripMenuItem1.Click += new System.EventHandler(this.histogramToolStripMenuItem1_Click);
             // 
             // pictureBox1
             // 
@@ -283,7 +292,7 @@
         private System.Windows.Forms.ToolStripMenuItem histogramToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cameraToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem grToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem onToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem StartVideoButton;
         private System.Windows.Forms.ToolStripMenuItem effectsToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem sepaiToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem colorInversionToolStripMenuItem1;
@@ -294,6 +303,7 @@
         private System.Windows.Forms.PictureBox pictureBox3;
         private System.Windows.Forms.Button loadbgButton;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.ToolStripMenuItem histogramToolStripMenuItem1;
     }
 }
 

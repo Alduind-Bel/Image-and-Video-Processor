@@ -16,7 +16,7 @@ namespace Image_and_Video_Processor
         private CameraDevice[] devices;
         private Timer videoTimer;
         private bool videoSubtractionEnabled = false;
-        private FilterType currentVideoFilter = FilterType.None; // Added
+        private FilterType currentVideoFilter = FilterType.None; 
 
         private enum FilterType { None, Grayscale, Invert, Sepia, Subtract, Histogram }
 
@@ -255,23 +255,27 @@ namespace Image_and_Video_Processor
                 if (!videoCapture.Read(frameMat) || frameMat.Empty()) return;
 
                 Bitmap frameBitmap = BitmapConverter.ToBitmap(frameMat);
-
-                // Live camera feed
                 pictureBox1.Image?.Dispose();
                 pictureBox1.Image = (Bitmap)frameBitmap.Clone();
+                if (videoSubtractionEnabled || currentVideoFilter != FilterType.None)
+                {
+                    Bitmap result = (Bitmap)frameBitmap.Clone();
 
-                // Apply subtraction if enabled
-                if (videoSubtractionEnabled && backgroundImage != null)
-                {
-                    EnsureBackgroundSize(frameBitmap.Width, frameBitmap.Height);
-                    Bitmap result = ApplySubtraction(frameBitmap, backgroundImage);
-                    pictureBox3.Image?.Dispose();
-                    pictureBox3.Image = result;
-                }
-                // Apply live video filter
-                else if (currentVideoFilter != FilterType.None)
-                {
-                    Bitmap result = ApplyVideoFilter(frameBitmap, currentVideoFilter);
+                    if (videoSubtractionEnabled && backgroundImage != null)
+                    {
+                        EnsureBackgroundSize(frameBitmap.Width, frameBitmap.Height);
+                        Bitmap subtracted = ApplySubtraction(result, backgroundImage);
+                        result.Dispose();
+                        result = subtracted;
+                    }
+
+                    if (currentVideoFilter != FilterType.None)
+                    {
+                        Bitmap filtered = ApplyVideoFilter(result, currentVideoFilter);
+                        result.Dispose();
+                        result = filtered;
+                    }
+
                     pictureBox3.Image?.Dispose();
                     pictureBox3.Image = result;
                 }
@@ -280,10 +284,12 @@ namespace Image_and_Video_Processor
             }
         }
 
+
+
         private void VideoCopyButton_Click(object sender, EventArgs e)
         {
             if (!CheckCameraRunning()) return;
-
+            videoSubtractionEnabled = false;
             Bitmap clone = (Bitmap)pictureBox1.Image.Clone();
             pictureBox3.Image?.Dispose();
             pictureBox3.Image = clone;
@@ -292,18 +298,21 @@ namespace Image_and_Video_Processor
         private void VideoGrayscaleButton_Click(object sender, EventArgs e)
         {
             if (!CheckCameraRunning()) return;
+            videoSubtractionEnabled = false;  
             currentVideoFilter = FilterType.Grayscale;
         }
 
         private void VideoInvertButton_Click(object sender, EventArgs e)
         {
             if (!CheckCameraRunning()) return;
+            videoSubtractionEnabled = false;
             currentVideoFilter = FilterType.Invert;
         }
 
         private void VideoSepiaButton_Click(object sender, EventArgs e)
         {
             if (!CheckCameraRunning()) return;
+            videoSubtractionEnabled = false;
             currentVideoFilter = FilterType.Sepia;
         }
 
@@ -586,6 +595,7 @@ namespace Image_and_Video_Processor
         private void histogramToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             if (!CheckCameraRunning()) return;
+            videoSubtractionEnabled = false;
             currentVideoFilter = FilterType.Histogram;
         }
     }

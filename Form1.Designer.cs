@@ -172,28 +172,28 @@
             // sepaiToolStripMenuItem
             // 
             this.sepaiToolStripMenuItem.Name = "sepaiToolStripMenuItem";
-            this.sepaiToolStripMenuItem.Size = new System.Drawing.Size(191, 26);
+            this.sepaiToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.sepaiToolStripMenuItem.Text = "Sepia";
             this.sepaiToolStripMenuItem.Click += new System.EventHandler(this.VideoSepiaButton_Click);
             // 
             // colorInversionToolStripMenuItem1
             // 
             this.colorInversionToolStripMenuItem1.Name = "colorInversionToolStripMenuItem1";
-            this.colorInversionToolStripMenuItem1.Size = new System.Drawing.Size(191, 26);
+            this.colorInversionToolStripMenuItem1.Size = new System.Drawing.Size(224, 26);
             this.colorInversionToolStripMenuItem1.Text = "Color Inversion";
             this.colorInversionToolStripMenuItem1.Click += new System.EventHandler(this.VideoInvertButton_Click);
             // 
             // copyToolStripMenuItem1
             // 
             this.copyToolStripMenuItem1.Name = "copyToolStripMenuItem1";
-            this.copyToolStripMenuItem1.Size = new System.Drawing.Size(191, 26);
+            this.copyToolStripMenuItem1.Size = new System.Drawing.Size(224, 26);
             this.copyToolStripMenuItem1.Text = "Copy";
             this.copyToolStripMenuItem1.Click += new System.EventHandler(this.VideoCopyButton_Click);
             // 
             // greyscaleToolStripMenuItem
             // 
             this.greyscaleToolStripMenuItem.Name = "greyscaleToolStripMenuItem";
-            this.greyscaleToolStripMenuItem.Size = new System.Drawing.Size(191, 26);
+            this.greyscaleToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.greyscaleToolStripMenuItem.Text = "Greyscale";
             this.greyscaleToolStripMenuItem.Click += new System.EventHandler(this.VideoGrayscaleButton_Click);
             // 

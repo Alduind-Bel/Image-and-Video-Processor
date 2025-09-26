@@ -598,5 +598,49 @@ namespace Image_and_Video_Processor
             videoSubtractionEnabled = false;
             currentVideoFilter = FilterType.Histogram;
         }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (pictureBox1.Image == null)
+            {
+                MessageBox.Show("No image or video is loaded in PictureBox1. Cannot save.",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (pictureBox3.Image == null)
+            {
+                MessageBox.Show("No processed image to save in PictureBox3.",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "PNG Image|*.png|JPEG Image|*.jpg;*.jpeg|Bitmap Image|*.bmp";
+                sfd.Title = "Save Processed Image";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        ImageFormat format = ImageFormat.Png;
+                        if (sfd.FileName.ToLower().EndsWith(".jpg") || sfd.FileName.ToLower().EndsWith(".jpeg"))
+                            format = ImageFormat.Jpeg;
+                        else if (sfd.FileName.ToLower().EndsWith(".bmp"))
+                            format = ImageFormat.Bmp;
+
+                        pictureBox3.Image.Save(sfd.FileName, format);
+                        MessageBox.Show("Image saved successfully!", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error saving image: " + ex.Message,
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
     }
 }

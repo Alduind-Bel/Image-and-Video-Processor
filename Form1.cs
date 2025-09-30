@@ -15,10 +15,53 @@ namespace Image_and_Video_Processor
         private VideoCapture videoCapture;
         private CameraDevice[] devices;
         private Timer videoTimer;
+        private int currentEmbossType = 1;
         private bool videoSubtractionEnabled = false;
         private FilterType currentVideoFilter = FilterType.None; 
 
-        private enum FilterType { None, Grayscale, Invert, Sepia, Subtract, Histogram }
+        private enum FilterType { None, Grayscale, Invert, Sepia, Subtract, Histogram, Smooth, Gaussian, Sharpen, MeanRemoval, Emboss }
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (pictureBox1.Image == null)
+            {
+                MessageBox.Show("No image or video is loaded in PictureBox1. Cannot save.",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (pictureBox3.Image == null)
+            {
+                MessageBox.Show("No processed image to save in PictureBox3.",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "PNG Image|*.png|JPEG Image|*.jpg;*.jpeg|Bitmap Image|*.bmp";
+                sfd.Title = "Save Processed Image";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        ImageFormat format = ImageFormat.Png;
+                        if (sfd.FileName.ToLower().EndsWith(".jpg") || sfd.FileName.ToLower().EndsWith(".jpeg"))
+                            format = ImageFormat.Jpeg;
+                        else if (sfd.FileName.ToLower().EndsWith(".bmp"))
+                            format = ImageFormat.Bmp;
+
+                        pictureBox3.Image.Save(sfd.FileName, format);
+                        MessageBox.Show("Image saved successfully!", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error saving image: " + ex.Message,
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
 
         public Form1()
         {
@@ -253,14 +296,12 @@ namespace Image_and_Video_Processor
             using (Mat frameMat = new Mat())
             {
                 if (!videoCapture.Read(frameMat) || frameMat.Empty()) return;
-
                 Bitmap frameBitmap = BitmapConverter.ToBitmap(frameMat);
                 pictureBox1.Image?.Dispose();
                 pictureBox1.Image = (Bitmap)frameBitmap.Clone();
                 if (videoSubtractionEnabled || currentVideoFilter != FilterType.None)
                 {
                     Bitmap result = (Bitmap)frameBitmap.Clone();
-
                     if (videoSubtractionEnabled && backgroundImage != null)
                     {
                         EnsureBackgroundSize(frameBitmap.Width, frameBitmap.Height);
@@ -268,14 +309,19 @@ namespace Image_and_Video_Processor
                         result.Dispose();
                         result = subtracted;
                     }
-
                     if (currentVideoFilter != FilterType.None)
                     {
-                        Bitmap filtered = ApplyVideoFilter(result, currentVideoFilter);
-                        result.Dispose();
-                        result = filtered;
+                        if (currentVideoFilter == FilterType.Emboss)
+                        {
+                            Convolution.Emboss(result, currentEmbossType);
+                        }
+                        else
+                        {
+                            Bitmap filtered = ApplyVideoFilter(result, currentVideoFilter);
+                            result.Dispose();
+                            result = filtered;
+                        }
                     }
-
                     pictureBox3.Image?.Dispose();
                     pictureBox3.Image = result;
                 }
@@ -283,6 +329,7 @@ namespace Image_and_Video_Processor
                 frameBitmap.Dispose();
             }
         }
+
 
 
 
@@ -337,14 +384,33 @@ namespace Image_and_Video_Processor
             {
                 return GenerateHistogram(frame);
             }
+            Bitmap result = new Bitmap(frame);
 
-            Bitmap result = new Bitmap(frame.Width, frame.Height, PixelFormat.Format24bppRgb);
+            if (filter == FilterType.Smooth)
+            {
+                Convolution.Smooth(result, 1); 
+                return result;
+            }
+            else if (filter == FilterType.MeanRemoval)
+            {
+                Convolution.MeanRemoval(result);
+                return result;
+            }
+            else if (filter == FilterType.Sharpen)
+            {
+                Convolution.Sharpen(result);
+                return result;
+            }
+            else if (filter == FilterType.Gaussian)
+            {
+                Convolution.GaussianBlur(result);
+                return result;
+            }
 
             BitmapData frameData = frame.LockBits(new Rectangle(0, 0, frame.Width, frame.Height),
                                                   ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
             BitmapData resultData = result.LockBits(new Rectangle(0, 0, result.Width, result.Height),
                                                     ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-
             int strideFrame = frameData.Stride;
 
             try
@@ -363,9 +429,7 @@ namespace Image_and_Video_Processor
                         byte g = rowFrame[x * 3 + 1];
                         byte r = rowFrame[x * 3 + 2];
 
-                        byte rb = r;
-                        byte gb = g;
-                        byte bb = b;
+                        byte rb = r, gb = g, bb = b;
 
                         switch (filter)
                         {
@@ -399,6 +463,8 @@ namespace Image_and_Video_Processor
 
             return result;
         }
+
+
 
         private unsafe Bitmap GenerateHistogram(Bitmap frame)
         {
@@ -526,6 +592,13 @@ namespace Image_and_Video_Processor
             return true;
         }
 
+        private void histogramToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            if (!CheckCameraRunning()) return;
+            videoSubtractionEnabled = false;
+            currentVideoFilter = FilterType.Histogram;
+        }
+
         #endregion
 
         #region ---------------- Background Loading ----------------
@@ -592,55 +665,153 @@ namespace Image_and_Video_Processor
 
         #endregion
 
-        private void histogramToolStripMenuItem1_Click(object sender, EventArgs e)
+        #region ---------------- Convultion Matrix ----------------
+        private void SmoothButton_Click(object sender, EventArgs e)
         {
-            if (!CheckCameraRunning()) return;
-            videoSubtractionEnabled = false;
-            currentVideoFilter = FilterType.Histogram;
+            if (videoCapture != null && videoCapture.IsOpened())
+            {
+                if (!CheckCameraRunning()) return;
+                videoSubtractionEnabled = false;
+                currentVideoFilter = FilterType.Smooth;
+            }
+            else
+            {
+                if (imageBitmap == null)
+                {
+                    MessageBox.Show("No image loaded.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                Bitmap clone = (Bitmap)imageBitmap.Clone();
+                Convolution.Smooth(clone); 
+                pictureBox3.Image?.Dispose();
+                pictureBox3.Image = clone;
+            }
+        }
+        private void GaussianButton_Click(object sender, EventArgs e)
+        {
+            if (videoCapture != null && videoCapture.IsOpened())
+            {
+                if (!CheckCameraRunning()) return;
+                videoSubtractionEnabled = false;
+                currentVideoFilter = FilterType.Gaussian;
+            }
+            else
+            {
+                if (imageBitmap == null)
+                {
+                    MessageBox.Show("No image loaded.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                Bitmap clone = (Bitmap)imageBitmap.Clone();
+                Convolution.GaussianBlur(clone);
+                pictureBox3.Image?.Dispose();
+                pictureBox3.Image = clone;
+            }
+        }
+        private void SharpenButton_Click(object sender, EventArgs e)
+        {
+            if (videoCapture != null && videoCapture.IsOpened())
+            {
+                if (!CheckCameraRunning()) return;
+                videoSubtractionEnabled = false;
+                currentVideoFilter = FilterType.Sharpen;
+            }
+            else
+            {
+                if (imageBitmap == null)
+                {
+                    MessageBox.Show("No image loaded.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                Bitmap clone = (Bitmap)imageBitmap.Clone();
+                Convolution.Sharpen(clone);
+                pictureBox3.Image?.Dispose();
+                pictureBox3.Image = clone;
+            }
+        }
+        private void meanRemovalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (videoCapture != null && videoCapture.IsOpened())
+            {
+                if (!CheckCameraRunning()) return;
+                videoSubtractionEnabled = false;
+                currentVideoFilter = FilterType.MeanRemoval;
+            }
+            else
+            {
+                if (imageBitmap == null)
+                {
+                    MessageBox.Show("No image loaded.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                Bitmap clone = (Bitmap)imageBitmap.Clone();
+                Convolution.MeanRemoval(clone);
+                pictureBox3.Image?.Dispose();
+                pictureBox3.Image = clone;
+            }
         }
 
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        private void embossing(object sender, EventArgs e)
         {
-            if (pictureBox1.Image == null)
+            if (sender is ToolStripMenuItem item)
             {
-                MessageBox.Show("No image or video is loaded in PictureBox1. Cannot save.",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            if (pictureBox3.Image == null)
-            {
-                MessageBox.Show("No processed image to save in PictureBox3.",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
+                string text = item.Text.Replace(" ", "").ToLower();
 
-            using (SaveFileDialog sfd = new SaveFileDialog())
-            {
-                sfd.Filter = "PNG Image|*.png|JPEG Image|*.jpg;*.jpeg|Bitmap Image|*.bmp";
-                sfd.Title = "Save Processed Image";
-
-                if (sfd.ShowDialog() == DialogResult.OK)
+                // Use classic switch instead of switch expression
+                switch (text)
                 {
-                    try
-                    {
-                        ImageFormat format = ImageFormat.Png;
-                        if (sfd.FileName.ToLower().EndsWith(".jpg") || sfd.FileName.ToLower().EndsWith(".jpeg"))
-                            format = ImageFormat.Jpeg;
-                        else if (sfd.FileName.ToLower().EndsWith(".bmp"))
-                            format = ImageFormat.Bmp;
+                    case "laplace":
+                        currentEmbossType = 1;
+                        break;
+                    case "horiver":
+                        currentEmbossType = 2;
+                        break;
+                    case "omnidirection":
+                        currentEmbossType = 3;
+                        break;
+                    case "lossy":
+                        currentEmbossType = 4;
+                        break;
+                    case "horizontal":
+                        currentEmbossType = 5;
+                        break;
+                    case "vertical":
+                        currentEmbossType = 6;
+                        break;
+                    default:
+                        currentEmbossType = 1;
+                        break;
+                }
 
-                        pictureBox3.Image.Save(sfd.FileName, format);
-                        MessageBox.Show("Image saved successfully!", "Success",
-                            MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    catch (Exception ex)
+                if (imageBitmap != null && (videoCapture == null || !videoCapture.IsOpened()))
+                {
+                    Bitmap clone = (Bitmap)imageBitmap.Clone();
+                    Convolution.Emboss(clone, currentEmbossType);
+                    pictureBox3.Image?.Dispose();
+                    pictureBox3.Image = clone;
+                }
+                else if (videoCapture != null && videoCapture.IsOpened())
+                {
+                    currentVideoFilter = FilterType.Emboss;
+                    videoSubtractionEnabled = false;
+
+                    if (pictureBox1.Image != null)
                     {
-                        MessageBox.Show("Error saving image: " + ex.Message,
-                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Bitmap clone = (Bitmap)pictureBox1.Image.Clone();
+                        Convolution.Emboss(clone, currentEmbossType);
+                        pictureBox3.Image?.Dispose();
+                        pictureBox3.Image = clone;
                     }
+                }
+                else
+                {
+                    MessageBox.Show("No image or video loaded.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
+
+        #endregion
+
 
     }
 }
